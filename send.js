@@ -16,23 +16,31 @@ function createChannel(conn){
   return connection.createChannel();
 }
 
-function sendMessage(ch){
-  channel = ch;
-
+function sendMessage(channel){
   console.log("sending message");
-  var msg = "foooooo";
+  var queues = [
+    {"queue_name": "h1000-rates-booking", "service": "rate_booking"},
+    {"queue_name": "h1000-rates-expedia", "service": "rate_expedia"},
+    {"queue_name": "h1000-rates-decolar", "service": "rate_decolar"},
+    {"queue_name": "h2000-rates-decolar", "service": "rate_decolar"}
+  ]
 
   var options = {
     persistent: true,
     durable: true,
     autoDelete: false,
     //noAck: false,
-    timestamp: Date.now(),
+    //timestamp: Date.now(),
     contentEncoding: "utf-8",
-    contentType: "text/plain"
+    contentType: "application/json"
   };
 
-  channel.sendToQueue("foo-queue", new Buffer("work work work"));
+  channel.assertQueue("all-queues", options);
+
+  queues.forEach(function(json){
+    channel.sendToQueue("all-queues", new Buffer(JSON.stringify(json)));
+  });
+
   return channel.close();
 }
 
